@@ -2,88 +2,132 @@
 
 namespace ZfcUserDoctrineMongoODM\Mapper;
 
-use Doctrine\ODM\MongoDB\DocumentManager,
-    ZfcUserDoctrineMongoODM\Options\ModuleOptions;
+use Doctrine\ODM\MongoDB\DocumentManager;
+use ZfcUser\Entity\UserInterface;
+use ZfcUserDoctrineMongoODM\Options\ModuleOptions;
 
 class UserMongoDB implements \ZfcUser\Mapper\UserInterface
 {
     /**
-     * @var \Doctrine\ODM\DocumentManager
+     * @var DocumentManager
      */
-    protected $dm;
-    
+    protected $documentManager;
+
+
     /**
      * @var \ZfcUserDoctrineMongoODM\Options\ModuleOptions
      */
     protected $options;
-    
-    public function __construct(DocumentManager $dm, ModuleOptions $options)
+
+
+    /**
+     * UserMongoDB constructor.
+     *
+     * @param DocumentManager $documentManager
+     * @param ModuleOptions $options
+     */
+    public function __construct(DocumentManager $documentManager, ModuleOptions $options)
     {
-        $this->dm      = $dm;
-        $this->options = $options;
+        $this->setDocumentManager($documentManager);
+        $this->setOptions($options);
     }
+
 
     public function findByEmail($email)
     {
-        $dm = $this->getDocumentManager();
-        $class = $this->options->getUserEntityClass();
-        $user = $dm->getRepository($class)->findOneBy(array('email' => $email));
+        $user = $this->getUserRepository()->findOneBy(['email' => $email]);
+
         return $user;
     }
+
 
     public function findByUsername($username)
     {
-        $dm = $this->getDocumentManager();
-        $class = $this->options->getUserEntityClass();
-        $user = $dm->getRepository($class)->findOneBy(array('username' => $username));
+        $user = $this->getUserRepository()->findOneBy(['username' => $username]);
+
         return $user;
     }
-    
+
+
     public function findById($id)
     {
-        $dm = $this->getDocumentManager();
-        $class = $this->options->getUserEntityClass();
-        $user = $dm->getRepository($class)->findOneBy(array('id' => $id));
+        $user = $this->getUserRepository()->findOneBy(['id' => $id]);
+
         return $user;
     }
 
+
+    /**
+     * @return DocumentManager
+     */
     public function getDocumentManager()
     {
-        return $this->dm;
+        return $this->documentManager;
     }
 
-    public function setDocumentManager(DocumentManager $dm)
+
+    /**
+     * @param DocumentManager $documentManager
+     */
+    public function setDocumentManager(DocumentManager $documentManager)
     {
-        $this->dm = $dm;
-        return $this;
+        $this->documentManager = $documentManager;
     }
 
+
+    /**
+     * @return ModuleOptions
+     */
+    public function getOptions()
+    {
+        return $this->options;
+    }
+
+
+    /**
+     * @param ModuleOptions $options
+     */
+    public function setOptions(ModuleOptions $options)
+    {
+        $this->options = $options;
+    }
+
+
+    /**
+     * @return \Doctrine\ODM\MongoDB\DocumentRepository
+     */
     public function getUserRepository()
     {
-    	$class = ZfcUser::getOption('user_entity_class');
+        $class = $this->getOptions()->getUserEntityClass();
+
         return $this->getDocumentManager()->getRepository($class);
     }
-    
+
+
+    /**
+     * @param $document
+     */
     public function persist($document)
     {
-        $dm = $this->getDocumentManager();
-        $dm->persist($document);
-        $dm->flush();
-    }
-    
-    public function insert($document, $tableName = null, HydratorInterface $hydrator = null)
-    {
-        $this->dm->persist($document);
-        $this->dm->flush();
+        $this->getDocumentManager()->persist($document);
+        $this->getDocumentManager()->flush();
     }
 
-    public function update($document, $where = null, $tableName = null, HydratorInterface $hydrator = null)
-    {
-        if (!$where) {
-            $where = 'id = ' . $document->getId();
-        }
 
-        $this->dm->persist($document);
-        $this->dm->flush();
+    /**
+     * @param UserInterface $document
+     */
+    public function insert(UserInterface $document)
+    {
+        $this->persist($document);
+    }
+
+
+    /**
+     * @param UserInterface $document
+     */
+    public function update(UserInterface $document)
+    {
+        $this->persist($document);
     }
 }

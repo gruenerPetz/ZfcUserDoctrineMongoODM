@@ -3,7 +3,6 @@
 namespace ZfcUserDoctrineMongoODM;
 
 use Doctrine\ODM\MongoDB\Mapping\Driver\XmlDriver;
-use ZfcUser\Module as ZfcUser;
 
 class Module
 {
@@ -47,11 +46,12 @@ class Module
                     return new Options\ModuleOptions(isset($config['zfcuser']) ? $config['zfcuser'] : array());
                 },
                 'zfcuser_user_mapper' => function ($sm) {
-                    return new \ZfcUserDoctrineMongoODM\Mapper\UserMongoDB(
+                    return new Mapper\UserMongoDB(
                         $sm->get('zfcuser_doctrine_dm'),
                         $sm->get('zfcuser_module_options')
                     );
                 },
+                'ZfcUserDoctrineMongoODM\Authentication\Adapter\Db' => Factory\Authentication\Adapter\DbFactory::class,
             ),
         );
     }
